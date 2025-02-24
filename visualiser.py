@@ -5,14 +5,15 @@ import os
 
 
 def get_unique_id():
-	return datetime.datetime.now().strftime("%y%m%d%H%M")
+	return datetime.datetime.now().strftime("%y%m%d%H%M%S")
 
-def draw_trajectories(filename="unknown", recording_start=10, collisions=False, collision_threshold=0.4):
+def draw_trajectories(filename="unknown", recording_start=0):
 	# FILES
 	folder = "crowd_simulations/"
 	unique_sim_id = get_unique_id()
 	trajectory_files = os.listdir(folder)
 	trajectories = [[[], []] for _ in range(len(trajectory_files))]
+
 	# INITIALISATION
 	collisions_x = []
 	collisions_y = []
@@ -32,25 +33,14 @@ def draw_trajectories(filename="unknown", recording_start=10, collisions=False, 
 			y1 = float(y1)
 			trajectories[current_agent][0].append(x1)
 			trajectories[current_agent][1].append(y1)
-			# LOOK FOR COLLISIONS WITH NEIGHBOURS
-			if not collisions:
-				continue
-			for neighbour_agent in trajectory_files[current_agent + 1:]:
-				if neighbour_agent[-1] != "v" or file == neighbour_agent:
-					continue
-				neighbour_t = open(folder + "/" + neighbour_agent).readlines()[time_step]
-				t2, x2, y2 = neighbour_t.split(",")
-				if abs(float(t2) - t1) < 0.5 and (x1 - float(x2)) ** 2 + (y1 - float(y2)) ** 2 < collision_threshold ** 2:
-					collisions_x.append(x1)
-					collisions_y.append(y1)
 
 	# ACTUALLY DRAW POSITIONS
 	plt.figure(figsize=(5, 5))
 	plt.axis("equal")
 	#plt.axis("off")
 	plt.scatter(collisions_x, collisions_y, color="black", zorder=0)
-	for agent in trajectories:
-		color = random.choice(["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"])
+	for a, agent in enumerate(trajectories):
+		color = ["tab:blue", "tab:olive", "tab:cyan", "tab:green", "tab:brown", "tab:orange", "tab:red", "tab:purple", "tab:pink", "tab:gray"][a]
 		firsttime = 0
 		for time in range(len(agent[0]) - 1):
 			if abs(agent[0][time] - agent[0][time + 1]) > 2 or abs(agent[1][time] - agent[1][time + 1]) > 2:
@@ -60,5 +50,6 @@ def draw_trajectories(filename="unknown", recording_start=10, collisions=False, 
 		plt.scatter(agent[0][-1], agent[1][-1], s=80, zorder=2, color=color)
 
 	# STORE FILE
-	plt.savefig("figures/" + filename + "_" + unique_sim_id + ".png", dpi=150)
+	# plt.savefig("figures/" + filename + "_" + unique_sim_id + ".png", dpi=150)
+	plt.savefig("figures/" + filename + ".png", dpi=150)
 	plt.close('all')
